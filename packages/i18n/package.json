@@ -1,0 +1,39 @@
+{
+  "name": "@globalization-partners/i18n",
+  "version": "1.0.26",
+  "description": "i18n package",
+  "main": "dist/index.js",
+  "types": "./dist/**/**.d.ts",
+  "typings": "./dist/type/index.d.ts",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "publish": "yarn npm publish --tolerate-republish",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 0",
+    "version": "node -e \"let pkg=require('./package.json'); pkg.version=JSON.parse(process.env.VERSION); require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));\" && git add package.json"
+  },
+  "files": [
+    "dist/*",
+    "Readme.md"
+  ],
+  "keywords": [
+    "i18n"
+  ],
+  "repository": {
+    "type": "git",
+    "directory": "packages/i18n",
+    "url": "ssh://git@github.com/globalization-partners/gp-template-nodejs-service.git"
+  },
+  "author": "GP",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "i18next": "^21.2.4",
+    "i18next-http-backend": "^1.3.1",
+    "react": "^17.0.2",
+    "react-i18next": "^11.12.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.14.1",
+    "typescript": "^4.5.0-dev.20211012"
+  }
+}

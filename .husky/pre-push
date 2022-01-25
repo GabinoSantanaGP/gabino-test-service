@@ -1,0 +1,26 @@
+#!/bin/sh
+
+BRANCH=`git rev-parse --abbrev-ref HEAD`
+PROTECTED_BRANCHES="^(main|deploy/*)"
+if [[ "$BRANCH" =~ $PROTECTED_BRANCHES ]]
+then
+  echo -e "\n Cannot push to remote $BRANCH branch, please add a  PR." && exit 1
+fi
+
+yarn cleanall
+yarn build
+yarn test:coverage
+yarn version patch
+# yarn workspaces foreach run version patch
+yarn changeset version
+# git add .yarn
+git add package.json
+# git add coverage
+export VERSION=$(jq .version <package.json)
+## version script added to each package.json will use env VERSION
+yarn workspaces foreach run version
+echo "$VERSION" > VERSION && git add VERSION
+git commit -m "version: ${VERSION}" --no-verify
+
+gh secret set AWS_ACCESS_KEY_ID -b ${AWS_ACCESS_KEY_ID}
+gh secret set AWS_SECRET_ACCESS_KEY -b ${AWS_SECRET_ACCESS_KEY}

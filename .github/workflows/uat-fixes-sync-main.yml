@@ -1,0 +1,83 @@
+name: Sync main with QA/UAT fixes
+on:
+  push:
+    branches:
+      - deploy/test
+      # - deploy/test-patch
+env:
+  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+jobs:
+  sync-main:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Is PR required?
+        id: pr_required
+        run: echo "::set-output name=pr_required::$(git diff origin/main --quiet || echo 1)"
+
+      - name: Extract branch name
+        if: ${{ steps.pr_required.outputs.pr_required == 1}}
+        shell: bash
+        run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
+        id: extract_branch
+
+      - name: Ensure label is created
+        shell: bash
+        run: gh api repos/:owner/:repo/labels -f name="sync-pr" -f color="FBCA04" || true
+
+      - name: Create Pull Request
+        if: ${{ steps.pr_required.outputs.pr_required == 1}}
+        id: cpr
+        run: >
+          echo $(gh pr create --title 'Sync changes: ${{ steps.extract_branch.outputs.branch }} -> main' --body '
+            _This PR was auto-created due to a PR being merged on the ${{ steps.extract_branch.outputs.branch }} branch. It has been created to ensure any changes applied due to UAT testing or production issues are reconciled into the main integration branch ASAP_ 
+
+            _Please review the following checklist to ensure that this PR is accepted and merged in the correct manner_
+
+            - [ ] Changes approved by creator of the changes made on ${{ steps.extract_branch.outputs.branch }}
+            - [ ] Approved by one or more codeowners
+            - [ ] _Merge pull request_ option to be used when merging this PR. **_Squash and merge_ should not be used!**
+          ' --base main --head ${{ steps.extract_branch.outputs.branch }} --reviewer ${{github.event.pusher.name}} --label sync-pr)
+   
+      - name: Is PR conflicted?
+        if: ${{ steps.pr_required.outputs.pr_required == 1}}
+        id: mergeable
+        run: echo "::set-output name=state::$(gh pr view --json mergeStateStatus --jq '.mergeStateStatus')"
+
+      - name: Get PR number
+        if: ${{ steps.pr_required.outputs.pr_required == 1}}
+        id: pr_details
+        run: echo "::set-output name=number::$(gh pr view --json number --jq '.number')"        
+
+      - name: Comment Pull Request
+        if: ${{ steps.pr_required.outputs.pr_required == 1 && steps.mergeable.outputs.state == 'DIRTY'}}
+        run: > 
+          gh pr comment -b '
+            _Hey @${{github.event.pusher.name}} :wave:_
+            
+            _This PR was created to sync changes from ${{ steps.extract_branch.outputs.branch }} to main but unfortunately there are merge conflicts :cry: As we are unable to resolve conflicts directly on either of these branches, please follow the below steps to resolve:_
+
+            - *Step 1: From your project repository, bring in the changes and test.*
+            ```
+            git checkout main
+            git pull
+            git checkout -b conflicts/resolve_pr${{ steps.pr_details.outputs.number }}
+            git pull origin ${{ steps.extract_branch.outputs.branch }}
+            ```
+            - *Step 2: Merge the changes and update on GitHub.*
+            ```
+            git commit -m "Insert informative commit message here"
+            git push conflicts/resolve_${{ steps.pr_details.outputs.number }}
+            ```
+
+            - *Step 3: Create a PR.*
+            ```
+            gh pr create --base main --head conflicts/resolve_pr${{ steps.pr_details.outputs.number }}
+            ```
+          '
+      # - name: Close Pull Request
+      #   if: ${{ steps.pr_required.outputs.pr_required == 1}} && ${{ steps.mergeable.outputs.state == 'DIRTY' }}
+      #   run: gh pr close

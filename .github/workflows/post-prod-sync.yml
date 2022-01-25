@@ -1,0 +1,141 @@
+name: Sync test branches with production changes
+on:
+  push:
+    branches:
+      - deploy/prod
+env:
+  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+jobs:
+  sync-test:
+    runs-on: ubuntu-latest
+    steps: 
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: deploy/test
+
+      - name: Is PR required?
+        id: pr_required
+        run: echo "::set-output name=pr_required::$(git diff origin/deploy/prod --quiet || echo 1)"
+        
+      - name: Get PR number
+        if: ${{ steps.pr_required.outputs.pr_required == 1}}
+        id: pr_details
+        run: echo "::set-output name=number::$(gh api repos/:owner/:repo/pulls -X "GET" -f base=deploy/test -f base=deploy/prod --jq '.[0].number')"      
+
+      - name: Ensure label is created
+        shell: bash
+        run: gh api repos/:owner/:repo/labels -f name="sync-pr" -f color="FBCA04" || true
+
+      - name: Create Pull Request
+        if: ${{ steps.pr_required.outputs.pr_required == 1 && steps.pr_details.outputs.number == 0 }}
+        id: cpr
+        run: >
+          echo $(gh pr create --title 'Sync changes: deploy/prod -> deploy/test' --body '
+            _This PR was auto-created due to a PR being merged on the deploy/test-patch branch. It has been created to ensure that the latest production fix from deploy/test-patch is available within UAT testing and subsequently the main integration branch._ 
+
+            _Please review the following checklist to ensure that this PR is accepted and merged in the correct manner_
+
+            - [ ] Changes approved by creator of the changes made on deploy/prod
+            - [ ] Approved by one or more codeowners
+            - [ ] _Merge pull request_ option to be used when merging this PR. **_Squash and merge_ should not be used!**
+          ' --base deploy/test --head deploy/prod --reviewer ${{github.event.pusher.name}} --label sync-pr)
+
+      - name: Is PR conflicted?
+        if: ${{ steps.pr_required.outputs.pr_required == 1}}
+        id: mergeable
+        run: echo "::set-output name=state::$(gh pr view $${{ steps.pr_details.outputs.number }} --json mergeStateStatus --jq '.mergeStateStatus')"
+
+      - name: Comment Pull Request
+        if: ${{ steps.pr_required.outputs.pr_required == 1 && steps.mergeable.outputs.state == 'DIRTY'}}
+        run: > 
+          gh pr comment -b '
+            _Hey @${{github.event.pusher.name}} :wave:_
+            
+            _This PR was created to sync changes from deploy/prod to deploy/test but unfortunately there are merge conflicts :cry: As we are unable to resolve conflicts directly on either of these branches, please follow the below steps to resolve:_
+
+            - *Step 1: From your project repository, bring in the changes and test.*
+            ```
+            git checkout deploy/test
+            git pull
+            git checkout -b conflicts/resolve_pr${{ steps.pr_details.outputs.number }}
+            git pull origin ${{ steps.extract_branch.outputs.branch }}
+            ```
+            - *Step 2: Merge the changes and update on GitHub.*
+            ```
+            git commit -m "Insert informative commit message here"
+            git push conflicts/resolve_${{ steps.pr_details.outputs.number }}
+            ```
+
+            - *Step 3: Create a PR.*
+            ```
+            gh pr create --base deploy/test --head conflicts/resolve_pr${{ steps.pr_details.outputs.number }}
+            ```
+          '
+  sync-test-patch:
+    runs-on: ubuntu-latest
+    steps: 
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: deploy/test-patch
+
+      - name: Is PR required?
+        id: pr_required
+        run: echo "::set-output name=pr_required::$(git diff origin/deploy/prod --quiet || echo 1)"
+
+      - name: Get PR number
+        if: ${{ steps.pr_required.outputs.pr_required == 1}}
+        id: pr_details
+        run: echo "::set-output name=number::$(gh api repos/:owner/:repo/pulls -X "GET" -f base=deploy/test-patch -f base=deploy/prod --jq '.[0].number')"
+        
+      - name: Ensure label is created
+        shell: bash
+        run: gh api repos/:owner/:repo/labels -f name="sync-pr" -f color="FBCA04" || true
+
+      - name: Create Pull Request
+        if: ${{ steps.pr_required.outputs.pr_required == 1 && steps.pr_details.outputs.number == 0 }}
+        id: cpr
+        run: >
+          echo $(gh pr create --title 'Sync changes: deploy/prod -> deploy/test-patch' --body '
+            _This PR was auto-created due to a PR being merged on the deploy/test branch. It has been created to ensure that the latest production release is available in the patch environment._ 
+
+            _Please review the following checklist to ensure that this PR is accepted and merged in the correct manner_
+
+            - [ ] Changes approved by creator of the changes made on deploy/prod
+            - [ ] Approved by one or more codeowners
+            - [ ] _Merge pull request_ option to be used when merging this PR. **_Squash and merge_ should not be used!**
+          ' --base deploy/test-patch --head deploy/prod --reviewer ${{github.event.pusher.name}} --label sync-pr)
+  
+      - name: Is PR conflicted?
+        if: ${{ steps.pr_required.outputs.pr_required == 1}}
+        id: mergeable
+        run: echo "::set-output name=state::$(gh pr view $${{ steps.pr_details.outputs.number }} --json mergeStateStatus --jq '.mergeStateStatus')"
+
+      - name: Comment Pull Request
+        if: ${{ steps.pr_required.outputs.pr_required == 1 && steps.mergeable.outputs.state == 'DIRTY'}}
+        run: > 
+          gh pr comment -b '
+            _Hey @${{github.event.pusher.name}} :wave:_
+            
+            _This PR was created to sync changes from deploy/prod to deploy/test-patch but unfortunately there are merge conflicts :cry: As we are unable to resolve conflicts directly on either of these branches, please follow the below steps to resolve:_
+
+            - *Step 1: From your project repository, bring in the changes and test.*
+            ```
+            git checkout deploy/test-patch
+            git pull
+            git checkout -b conflicts/resolve_pr${{ steps.pr_details.outputs.number }}
+            git pull origin ${{ steps.extract_branch.outputs.branch }}
+            ```
+            - *Step 2: Merge the changes and update on GitHub.*
+            ```
+            git commit -m "Insert informative commit message here"
+            git push conflicts/resolve_${{ steps.pr_details.outputs.number }}
+            ```
+
+            - *Step 3: Create a PR.*
+            ```
+            gh pr create --base deploy/test-patch --head conflicts/resolve_pr${{ steps.pr_details.outputs.number }}
+            ```
+          '
+          

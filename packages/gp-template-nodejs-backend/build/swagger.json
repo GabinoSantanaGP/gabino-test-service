@@ -1,0 +1,156 @@
+{
+	"components": {
+		"examples": {},
+		"headers": {},
+		"parameters": {},
+		"requestBodies": {},
+		"responses": {},
+		"schemas": {
+			"Customer": {
+				"properties": {
+					"id": {
+						"type": "number",
+						"format": "double"
+					},
+					"name": {
+						"type": "string"
+					},
+					"lastname": {
+						"type": "string"
+					},
+					"age": {
+						"type": "number",
+						"format": "double"
+					},
+					"email": {
+						"type": "string"
+					},
+					"phone": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"lastname",
+					"age",
+					"email",
+					"phone"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Pick_Customer.age-or-name-or-lastname-or-email-or-phone_": {
+				"properties": {
+					"age": {
+						"type": "number",
+						"format": "double"
+					},
+					"name": {
+						"type": "string"
+					},
+					"lastname": {
+						"type": "string"
+					},
+					"email": {
+						"type": "string"
+					},
+					"phone": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"age",
+					"name",
+					"lastname",
+					"email",
+					"phone"
+				],
+				"type": "object",
+				"description": "From T, pick a set of properties whose keys are in the union K"
+			},
+			"CustomerCreationParams": {
+				"$ref": "#/components/schemas/Pick_Customer.age-or-name-or-lastname-or-email-or-phone_"
+			}
+		},
+		"securitySchemes": {}
+	},
+	"info": {
+		"title": "@globalization-partners/gp-customer-service-backend",
+		"version": "1.0.23",
+		"description": "reverse proxy package",
+		"license": {
+			"name": "UNLICENSED"
+		},
+		"contact": {
+			"name": "GP"
+		}
+	},
+	"openapi": "3.0.0",
+	"paths": {
+		"/Customers/{CustomerId}": {
+			"get": {
+				"operationId": "GetCustomer",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Customer"
+								}
+							}
+						}
+					}
+				},
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "CustomerId",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "name",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/Customers": {
+			"post": {
+				"operationId": "CreateCustomer",
+				"responses": {
+					"201": {
+						"description": "Created"
+					}
+				},
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CustomerCreationParams"
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"servers": [
+		{
+			"url": "/"
+		}
+	]
+}

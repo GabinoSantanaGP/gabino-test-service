@@ -1,0 +1,184 @@
+{
+  "name": "@globalization-partners/gp-template-nodejs-service",
+  "version": "1.0.26",
+  "description": "package for template-nodejs-service",
+  "main": "./dist/src/index.js",
+  "types": "./dist/**/**.d.ts",
+  "typings": "./dist/types",
+  "xprivate": true,
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "scripts": {
+    "backend": "yarn node packages/gp-template-nodejs-service-backend/build/src/server",
+    "clean": "rm -rf dist",
+    "cleanall": "yarn workspaces foreach run clean",
+    "new-package": "mkdir -p ./packages/$0 && cd ./packages/$0 && yarn init -y && cp ../i18n/tsconfig.json ./ && touch index.ts",
+    "format": "prettier --write '**/*.{js,jsx,ts,tsx,md}' && eslint --fix --ext '.js,.jsx,.ts,.tsx' src packages",
+    "build": "tsc",
+    "publish": "yarn npm publish --tolerate-republish",
+    "xbuild": "yarn workspaces foreach run build && tsc -b",
+    "husky": "husky",
+    "xbuild:types": "run-p build:types:cjs build:types:esm",
+    "build:types:cjs": "tsc --outDir dist/commonjs --isolatedModules false --declaration --noEmit false --emitDeclarationOnly",
+    "build:types:esm": "tsc --outDir dist/esm --isolatedModules false --declaration --noEmit false --emitDeclarationOnly",
+    "bdd": "node gherkin-jest/run --config gherkin-jest/jest-config.json src/cucumber/**/*.feature",
+    "lint": "yarn lint:fix",
+    "lint:fix": "eslint --ext .js,.ts . --fix",
+    "xlint:api": "spectral lint docs/api/service-name-api.yaml",
+    "test": "jest --passWithNoTests",
+    "test:coverage": "jest --coverage --watchAll=false --passWithNoTests",
+    "postinstall": "[ -d '.husky' ] && husky install || exit 0",
+    "prepublishOnly": "pinst --disable",
+    "postpublish": "pinst --enable"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@github.com/globalization-partners/gp-template-nodejs-service.git"
+  },
+  "author": "GP",
+  "babel": {
+    "presets": [
+      "react-app"
+    ]
+  },
+  "bugs": {
+    "url": "https://globalization-partners.atlassian.net/jira/"
+  },
+  "exports": {
+    ".": "./dist/src/index.js",
+    "./i18n": "./packages/i18n",
+    "./gp-template-nodejs-service-backend": "./packages/gp-template-nodejs-service-backend",
+    "xdefault": "dist/index.js",
+    "xrequire": "dist/cjs/index.js",
+    "ximport": "dist/esm/index.js"
+  },
+  "files": [
+    "./dist/**/*",
+    "./packages/i18n/dist/*",
+    "./packages/gp-template-nodejs-service-backend/*"
+  ],
+  "module": "dist/esm/index.js",
+  "homepage": "https://globalization-partners.atlassian.net/wiki",
+  "dependencies": {
+    "@changesets/cli": "^2.17.0",
+    "@globalization-partners/i18n": "workspace:^1.0.0",
+    "i18next": "^21.2.4",
+    "node-fetch": "^3.0.0",
+    "prettier": "^2.4.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-i18next": "^11.12.0",
+    "ts-node": "^10.2.1"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "^7.3.1",
+    "@testing-library/jest-dom": "^5.14.1",
+    "@testing-library/react": "^12.1.2",
+    "@types/jest": "^26.0.24",
+    "@types/node": "^16.10.3",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "babel-eslint": "^10.1.0",
+    "babel-preset-react-app": "^10.0.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-config-react-app": "^6.0.0",
+    "eslint-plugin-flowtype": "^5.2.0",
+    "eslint-plugin-import": "^2.24.2",
+    "eslint-plugin-jest": "^24.5.2",
+    "eslint-plugin-jsdoc": "^36.1.0",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-no-null": "^1.0.2",
+    "eslint-plugin-prettier": "^3.4.1",
+    "eslint-plugin-promise": "^5.1.0",
+    "eslint-plugin-react": "^7.26.1",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "eslint-plugin-simple-import-sort": "^7.0.0",
+    "eslint-plugin-testing-library": "3.9.0",
+    "gherkin-jest": "^0.24.0",
+    "husky": "^7.0.2",
+    "jest": "^26.6.3",
+    "pinst": "^2.1.6",
+    "promise.prototype.finally": "^3.1.3",
+    "react-app-polyfill": "^2.0.0",
+    "react-scripts": "^4.0.3",
+    "stucumber": "^0.19.0",
+    "typescript": "^4.5.0-dev.20211012"
+  },
+  "engines": {
+    "yarn": "1.22.5 || ^3.0.2",
+    "node": "12.15.0 || ^12.22.6 || ^14.17.6  || ^16.9.1"
+  },
+  "husky": {},
+  "jest": {
+    "restoreMocks": true,
+    "coveragePathIgnorePatterns": [
+      "src/index.tsx",
+      "src/i18n.ts",
+      "src/reportWebVitals.ts",
+      "src/core/Utils/mockServer.ts"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 65,
+        "functions": 75,
+        "lines": 85,
+        "statements": 80
+      }
+    }
+  },
+  "keywords": [
+    "globalization",
+    "partners",
+    "template",
+    "service",
+    "nodejs",
+    "javascript",
+    "typescript",
+    "react",
+    "customer"
+  ],
+  "license": "UNLICENSED",
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix"
+    ],
+    "*.{js,jsx,ts,tsx,md}": [
+      "prettier --write"
+    ]
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "resolutions": {
+    "graphql": "15.5.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "workspaces": {
+    "packages": [
+      "packages/*",
+      "src"
+    ]
+  },
+  "yarn.build": {
+    "input": "src",
+    "output": "dist"
+  },
+  "packageManager": "yarn@3.0.2"
+}

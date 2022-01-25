@@ -1,0 +1,8 @@
+{
+  "CODEOWNERS": ["AodhainMcd", "BFrancisgp", "nialltoner-gp", "klynchkurzawa", "duncanhealy-gp"],
+  "USERNAME": "dhealy",
+  "SERVICE_NAME": "customer-service",
+  "TEAM_NAME": "trail-01",
+  "TEAM_URL": "trail-01.gpdev.us",
+  "SERVICES": ["ui-components"]
+}

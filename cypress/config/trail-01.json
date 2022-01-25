@@ -1,0 +1,28 @@
+{
+  "baseUrl": "https://trail-01.gpdev.us",
+  "env": {
+      "maxTimeout": 180000,
+      "mediumTimeout": 60000,
+      "gpAdmin": "gp.admin@globalization-partners.com",
+      "accountManager": "account.manager@globalization-partners.com",
+      "clientServicesUser": "servicesmc@globalization-partners.com",
+      "clientAccPayable": "cy_recruiting_accounts_payable@globalization-partners.com",
+      "clientAdmin": "cy_recruiting_company_admin@globalization-partners.com",
+      "clientName": "cy_nextgen_recruiting_company",
+      "professional": "qmf@globalization-partners.com",
+      "professional_AI_status": "ai_status@globalization-partners.com",
+      "clientCompany1": "Company 200",
+      "Spain": {
+          "relatedLsp": "GP Spain - Spain",
+          "relatedLspSearch": "GP Spain"
+      },
+      "Mexico": {
+          "relatedLsp": "GP Mexico - Mexico",
+          "relatedLspSearch": "GP Mexico"
+      },
+      "Croatia": {
+          "relatedLsp": "GP Croatia - Croatia",
+          "relatedLspSearch": "GP Croatia"
+      }
+  }
+}
