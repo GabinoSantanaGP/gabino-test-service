@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "@globalization-partners/node-api-components": "^2.10.1",
-    "@tsoa/runtime": "^3.9.0",
+    "@tsoa/runtime": "^4.0.0",
     "@types/node": "^16.10.3",
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
